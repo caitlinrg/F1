@@ -13,6 +13,9 @@ points = {1:25, 2:18, 3:15, 4:12, 5:10, 6:8, 7:6, 8:4, 9:2, 10:1, 11:0, 12:0, 13
 #constructors dictionary
 constructorsdict = dict(zip(constructorsdf['constructorId'], constructorsdf['name'])) 
 
+#drivers dictionary
+driversdict  = dict(zip(driversdf['driverId'], driversdf['surname'])) 
+
 #Collect data lines per year
 def raceperyear(racesdf, year): 
     races23 = racesdf.loc[racesdf["year"] == year]
@@ -38,10 +41,9 @@ def results23(races, resultsdf, year):
 #Calculate final standings constructors championships
 def constructorschamp(results23):
     constructors = {}
-    prettyconstructors = {}
     for index in results23.index: 
 
-        #Try & catch to filter out all DNF
+        #Try & catch to filter out all DNF, pass for DNF
         try: 
             construct = str(results23["constructorId"][index])
             res = int(results23["position"][index])
@@ -57,13 +59,38 @@ def constructorschamp(results23):
 
     return dict(sorted(constructors.items(), key=lambda item: item[1], reverse=True))
 
-print("\n\n")
+def driverschamp(results23): 
+    drivers = {}
+    for index in results23.index: 
 
-#Pass all races, all results and year of interest
-res23 = results23(racesdf, resultsdf, 2023)
+        #Try & catch to filter out all DNF, pass for DNF
+        try: 
+            driver = str(results23["driverId"][index])
+            res = int(results23["position"][index])
+            winner = driversdict[int(driver)]
 
-const = constructorschamp(res23)
-plt.bar(const.keys(), const.values())
-plt.show()
+            if winner in drivers: 
+                drivers[winner] = drivers[winner] + points[res]
+            else: 
+                drivers[winner] = points[res]
 
-print(const)
+        except ValueError:
+            pass   
+
+    return dict(sorted(drivers.items(), key=lambda item: item[1], reverse=True))
+
+
+
+def main():
+    res23 = results23(racesdf, resultsdf, 2018)
+    const = constructorschamp(res23)
+    plt.bar(const.keys(), const.values())
+    plt.xticks(rotation=90)
+    plt.show() 
+
+    c = driverschamp(res23)
+    plt.bar(c.keys(), c.values())
+    plt.xticks(rotation=90)
+    plt.show()
+
+main()
